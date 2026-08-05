@@ -101,5 +101,17 @@ pipeline {
             }
         }
 
+        stage('Update ECS Service') {
+            steps {
+                sh '''
+                aws ecs update-service \
+                --cluster stockpilot-dev-ecs-cluster \
+                --service stockpilot-dev-backend-service \
+                --task-definition stockpilot-dev-backend \
+                --force-new-deployment
+                '''
+            }
+        }
+
     }
 }
