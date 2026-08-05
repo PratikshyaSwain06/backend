@@ -52,23 +52,14 @@ pipeline {
             }
         }
 
-    }
-}
-stage('Push Docker Image') {
-    steps {
-        sh '''
-        docker push \
-        ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPOSITORY}:${IMAGE_TAG}
-        '''
-    }
-}
-stage('Download Task Definition') {
-    steps {
-        sh '''
-        aws ecs describe-task-definition \
-        --task-definition stockpilot-dev-backend\
-        --query taskDefinition \
-        > task-definition.json
-        '''
+        stage('Push Docker Image') {
+            steps {
+                sh '''
+                docker push \
+                ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPOSITORY}:${IMAGE_TAG}
+                '''
+            }
+        }
+
     }
 }
