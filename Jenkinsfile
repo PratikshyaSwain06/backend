@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         AWS_REGION = "ap-south-1"
-        AWS_ACCOUNT_ID = "431578779644"
+        AWS_ACCOUNT_ID = "227270320482"
         ECR_REPOSITORY = "stockpilot-dev-backend"
         IMAGE_NAME = "stockpilot-backend"
         IMAGE_TAG = "${BUILD_NUMBER}"
@@ -51,50 +51,55 @@ pipeline {
                 '''
             }
         }
+
         stage('Push Docker Image') {
-    steps {
-        sh '''
-        docker push \
-        ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPOSITORY}:${IMAGE_TAG}
-        '''
-    }
-}
-stage('Download Task Definition') {
-    steps {
-        sh '''
-        aws ecs describe-task-definition \
-        --task-definition stockpilot-dev-backend \
-        --query taskDefinition \
-        > task-definition.json
-        '''
-    }
-}
-stage('Prepare Task Definition') {
-    steps {
-        sh '''
-        jq '
-        del(
-          .taskDefinitionArn,
-          .revision,
-          .status,
-          .requiresAttributes,
-          .compatibilities,
-          .registeredAt,
-          .registeredBy
-        )
-        | .containerDefinitions[0].image =
-        "'${AWS_ACCOUNT_ID}'.dkr.ecr.'${AWS_REGION}'.amazonaws.com/'${ECR_REPOSITORY}':'${IMAGE_TAG}'"
-        ' task-definition.json > new-task-definition.json
-        '''
-    }
-}
-stage('Register Task Definition') {
-    steps {
-        sh '''
-        aws ecs register-task-definition \
-        --cli-input-json file://new-task-definition.json
-        '''
-    }
-}
+            steps {
+                sh '''
+                docker push \
+                ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPOSITORY}:${IMAGE_TAG}
+                '''
+            }
+        }
+
+        stage('Download Task Definition') {
+            steps {
+                sh '''
+                aws ecs describe-task-definition \
+                --task-definition stockpilot-dev-backend \
+                --query taskDefinition \
+                > task-definition.json
+                '''
+            }
+        }
+
+        stage('Prepare Task Definition') {
+            steps {
+                sh '''
+                jq '
+                del(
+                  .taskDefinitionArn,
+                  .revision,
+                  .status,
+                  .requiresAttributes,
+                  .compatibilities,
+                  .registeredAt,
+                  .registeredBy
+                )
+                | .containerDefinitions[0].image =
+                "'${AWS_ACCOUNT_ID}'.dkr.ecr.'${AWS_REGION}'.amazonaws.com/'${ECR_REPOSITORY}':'${IMAGE_TAG}'"
+                ' task-definition.json > new-task-definition.json
+                '''
+            }
+        }
+
+        stage('Register Task Definition') {
+            steps {
+                sh '''
+                aws ecs register-task-definition \
+                --cli-input-json file://new-task-definition.json
+                '''
+            }
+        }
+
     }
 }
